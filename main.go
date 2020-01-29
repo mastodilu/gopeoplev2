@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/mastodilu/gopeoplev2/person"
+	"github.com/mastodilu/gopeoplev2/model/person"
 )
 
 func main() {
