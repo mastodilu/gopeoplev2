@@ -1,15 +1,15 @@
 package mysignals
 
-// MySignal represents a signal
-type MySignal int
+// LifeSignal represents a signal
+type LifeSignal int
 
 const (
 	// StartLife signal sent when a new person is born
-	StartLife MySignal = 1 + iota
+	StartLife LifeSignal = 1 + iota
 )
 
-func (ms MySignal) String() string {
-	switch ms {
+func (ls LifeSignal) String() string {
+	switch ls {
 	case StartLife:
 		return "START_LIFE"
 	}

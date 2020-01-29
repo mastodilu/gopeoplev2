@@ -1,9 +1,16 @@
 package person
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mastodilu/gopeoplev2/model/mysignals"
+)
 
 func TestNew(t *testing.T) {
-	newperson := New() // crate a new Person
+	lifemsgRead := make(<-chan mysignals.LifeSignal)
+	lifemsgWrite := make(chan<- mysignals.LifeSignal)
+
+	newperson := New(lifemsgRead, lifemsgWrite) // crate a new Person
 	if newperson.ID() <= 0 {
 		t.Errorf("got %d, expected value > 0", newperson.ID())
 	}
