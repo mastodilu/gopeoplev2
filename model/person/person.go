@@ -1,6 +1,10 @@
 package person
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/mastodilu/gopeoplev2/utils"
+)
 
 var internalCounter int
 
@@ -26,12 +30,19 @@ func (p *Person) Sex() byte {
 	return p.sex
 }
 
-// NewPerson creates and returs a new Person
-func NewPerson() Person {
+// New creates and returs a new Person
+func New() Person {
+
 	return Person{
 		id:  newPersonID(),
 		age: 0,
-		sex: 'M',
+		// sex is M or F
+		sex: func() byte {
+			if utils.NewRandomIntInRange(0, 1) == 0 {
+				return 'M'
+			}
+			return 'F'
+		}(),
 	}
 }
 
