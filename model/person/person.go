@@ -3,7 +3,9 @@ package person
 import (
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/mastodilu/gopeoplev2/model/lifetimings"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
 	"github.com/mastodilu/gopeoplev2/utils"
 )
@@ -19,11 +21,10 @@ type Age struct {
 
 // Person represents a person
 type Person struct {
-	id           int
-	age          Age
-	sex          byte // 'M' or 'F'
-	lifemsgRead  <-chan mysignals.LifeSignal
-	lifemsgWrite chan<- mysignals.LifeSignal
+	id       int
+	age      Age
+	sex      byte // 'M' or 'F'
+	lifemsgs chan mysignals.LifeSignal
 }
 
 // ID person's id getter
@@ -46,9 +47,8 @@ func (p *Person) Sex() byte {
 }
 
 // New creates and returs a new Person
-func New(lmr <-chan mysignals.LifeSignal, lfw chan<- mysignals.LifeSignal) Person {
-
-	return Person{
+func New(lms chan mysignals.LifeSignal) *Person {
+	p := Person{
 		id: newPersonID(),
 		age: Age{
 			value: 0,
@@ -61,9 +61,42 @@ func New(lmr <-chan mysignals.LifeSignal, lfw chan<- mysignals.LifeSignal) Perso
 			}
 			return 'F'
 		}(),
-		lifemsgRead:  lmr,
-		lifemsgWrite: lfw,
+		lifemsgs: lms,
 	}
+	return &p
+}
+
+// ListenForSignals begin listening for signals (begin living and counting years)
+func (p *Person) ListenForSignals() {
+
+	// start to count the years
+	go func(ch chan<- mysignals.LifeSignal) {
+		for {
+			time.Sleep(lifetimings.Year)
+			ch <- mysignals.OneYearOlder
+			fmt.Println("ping")
+		}
+	}(p.lifemsgs)
+
+	// handle signals
+	go func(ch <-chan mysignals.LifeSignal) {
+		for {
+			msgin, ok := <-ch
+			if !ok {
+				fmt.Println("Life closed this channel!")
+				break
+			}
+
+			switch msgin {
+			case mysignals.StartLife:
+				fmt.Println("Hello world")
+			case mysignals.OneYearOlder:
+				p.oneYearOlder()
+				fmt.Println("pong")
+			}
+
+		}
+	}(p.lifemsgs)
 }
 
 // String returns the Person as formatted string
@@ -75,4 +108,11 @@ func (p *Person) String() string {
 func newPersonID() int {
 	internalCounter++
 	return internalCounter
+}
+
+// oneYearOlder adds one year to the person age
+func (p *Person) oneYearOlder() {
+	p.age.lock.Lock()
+	defer p.age.lock.Unlock()
+	p.age.value++
 }
