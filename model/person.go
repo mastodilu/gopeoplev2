@@ -1,4 +1,4 @@
-package person
+package model
 
 import "fmt"
 
@@ -26,8 +26,8 @@ func (p *Person) Sex() byte {
 	return p.sex
 }
 
-// New creates and returs a new Person
-func New() Person {
+// NewPerson creates and returs a new Person
+func NewPerson() Person {
 	return Person{
 		id:  newPersonID(),
 		age: 0,
@@ -37,7 +37,7 @@ func New() Person {
 
 // String returns the Person as formatted string
 func (p *Person) String() string {
-	return fmt.Sprintf("id:%d age:%d sex:%d", p.ID(), p.Age(), p.Sex())
+	return fmt.Sprintf("id:%d age:%d sex:%c", p.ID(), p.Age(), p.Sex())
 }
 
 // newPersonID returns the next valid ID
