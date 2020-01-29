@@ -23,15 +23,20 @@ func TestNew(t *testing.T) {
 	if newperson.Sex() != 'M' && newperson.Sex() != 'F' {
 		t.Errorf("got %d, expected 'M' or 'F'", newperson.Sex())
 	}
+
+	ch <- mysignals.Stop
 }
 
 func TestListenForSignals(t *testing.T) {
 	ch := make(chan mysignals.LifeSignal)
-	p := New(ch)
-	p.ListenForSignals()
-	time.Sleep(lifetimings.Year * 5)
-	personAge := p.Age()
-	if personAge != 4 && personAge != 5 && personAge != 6 {
-		t.Errorf("p.Age() = %d, expected value in range (4,6)", personAge)
+	p1 := New(ch)
+
+	ch <- mysignals.StartLife
+	// wait about 3 years
+	time.Sleep(lifetimings.Year * 3)
+	if p1.Age() != 2 && p1.Age() != 3 && p1.Age() != 4 {
+		t.Errorf("p1.Age() = %d, expected value in range (2, 4)", p1.Age())
 	}
+
+	ch <- mysignals.Stop
 }

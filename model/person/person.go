@@ -28,6 +28,7 @@ type Person struct {
 
 // New creates and returs a new Person
 func New(lms chan mysignals.LifeSignal) *Person {
+	// create new Person
 	p := Person{
 		id: newPersonID(),
 		age: Age{
@@ -44,29 +45,33 @@ func New(lms chan mysignals.LifeSignal) *Person {
 		}(),
 		lifemsgs: lms,
 	}
+	// start listening for signals
+	go (&p).listenForSignals()
+	// return Person information
 	return &p
 }
 
 // ListenForSignals begin listening for signals (begin living and counting years)
-func (p *Person) ListenForSignals() {
-
-	// start to count the years
-	go func(ch chan<- mysignals.LifeSignal) {
-		for {
-			// when max age is reached this person must stop getting older
-			if p.Age() == p.age.maxage {
-				ch <- mysignals.MaxAgeReached
+func (p *Person) listenForSignals() {
+	// handle signals:
+	// use a Closure to define the channel as read only
+	func(ch <-chan mysignals.LifeSignal) {
+		// stay in this loop until StartLife signal
+		stayInLoop := true
+		for stayInLoop {
+			msg := <-ch
+			switch msg {
+			case mysignals.Stop:
+				return // end person process
+			case mysignals.StartLife:
+				// start to count the years
+				go p.begingAging(p.lifemsgs)
+				stayInLoop = false
 			}
-
-			time.Sleep(lifetimings.Year) // wait one year
-			ch <- mysignals.OneYearOlder // signal that one year is passed
 		}
-	}(p.lifemsgs)
 
-	// handle signals
-	go func(ch <-chan mysignals.LifeSignal) {
-		continueLife := true
-		for continueLife {
+		stayInLoop = true
+		for stayInLoop {
 			msgin, ok := <-ch
 			if !ok {
 				fmt.Println("Life closed this channel!")
@@ -74,12 +79,13 @@ func (p *Person) ListenForSignals() {
 			}
 
 			switch msgin {
-			case mysignals.StartLife:
-				fmt.Println("Hello world")
+			case mysignals.Stop:
+				return // end person process
 			case mysignals.OneYearOlder:
 				p.oneYearOlder()
+				fmt.Println("age is", p.Age())
 			case mysignals.MaxAgeReached:
-				continueLife = false
+				stayInLoop = false
 			}
 		}
 		fmt.Println("Bye")
@@ -91,4 +97,18 @@ func (p *Person) oneYearOlder() {
 	p.age.lock.Lock()
 	defer p.age.lock.Unlock()
 	p.age.value++
+}
+
+// begingAging starts to increase the age of the given person
+func (p *Person) begingAging(ch chan<- mysignals.LifeSignal) {
+	for {
+		// when max age is reached this person must stop getting older
+		if p.Age() == p.age.maxage {
+			ch <- mysignals.MaxAgeReached
+			return // exit loop: stop counting the years
+		}
+
+		time.Sleep(lifetimings.Year) // wait one year
+		ch <- mysignals.OneYearOlder // signal that one year is passed
+	}
 }
