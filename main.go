@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/mastodilu/gopeoplev2/model"
+	"github.com/mastodilu/gopeoplev2/person"
 )
 
 func main() {
-	p := model.NewPerson()
+	p := person.NewPerson()
 	fmt.Println(p.String())
 }
