@@ -103,7 +103,7 @@ func (p *Person) oneYearOlder() {
 func (p *Person) begingAging(ch chan<- mysignals.LifeSignal) {
 	for {
 		// when max age is reached this person must stop getting older
-		if p.Age() == p.age.maxage {
+		if p.Age() >= p.age.maxage {
 			ch <- mysignals.MaxAgeReached
 			return // exit loop: stop counting the years
 		}
