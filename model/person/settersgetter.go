@@ -33,3 +33,8 @@ func newPersonID() int {
 	internalCounter++
 	return internalCounter
 }
+
+// Smartphone returns a channel where to write directly to this person
+func (p *Person) Smartphone() chan<- *Person {
+	return p.smartphone
+}
