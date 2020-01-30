@@ -74,7 +74,7 @@ func listenForNewCustomers() {
 				matched := registeredClients[id]
 				delete(registeredClients, id)
 				hashmapLock.Unlock()
-				customer.Smartphone() <- &matched
+				customer.Smartphone() <- matched
 			}
 
 		}
