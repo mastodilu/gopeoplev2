@@ -16,5 +16,6 @@ func NewRandomInt() int {
 // NewRandomIntInRange returns a pseudo random int
 // in the range [min, max]
 func NewRandomIntInRange(min, max int) int {
-	return rand.Intn(max+1-min) + min
+	out := r.Intn(max+1-min) + min
+	return out
 }

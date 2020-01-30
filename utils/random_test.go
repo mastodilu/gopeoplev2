@@ -5,9 +5,19 @@ import (
 )
 
 func TestNewRandomIntInRange(t *testing.T) {
-	// test with (0,1)
-	min, max := 0, 1
+	// test with (0,0)
+	min, max := 0, 0
 	got := NewRandomIntInRange(min, max)
+	if got < min || got > max {
+		t.Errorf("NewRandomIntInRange(%d,%d) = %d, want 0",
+			min,
+			max,
+			got)
+	}
+
+	// test with (0,1)
+	min, max = 0, 1
+	got = NewRandomIntInRange(min, max)
 	if got < min || got > max {
 		t.Errorf("NewRandomIntInRange(%d,%d) = %d, want a number in the range (%d, %d)",
 			min,

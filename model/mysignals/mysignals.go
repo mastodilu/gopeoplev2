@@ -1,17 +1,27 @@
 package mysignals
 
-// MySignal represents a signal
-type MySignal int
+// LifeSignal represents a signal
+type LifeSignal int
 
 const (
 	// StartLife signal sent when a new person is born
-	StartLife MySignal = 1 + iota
+	StartLife LifeSignal = iota
+	// OneYearOlder signal sent when a person has been alive for another year
+	OneYearOlder LifeSignal = iota
+	// MaxAgeReached signal sent when a person max age is reached
+	MaxAgeReached LifeSignal = iota
+	// Stop sends a stop signal, for example to end a person process
+	Stop LifeSignal = iota
 )
 
-func (ms MySignal) String() string {
-	switch ms {
+func (ls LifeSignal) String() string {
+	switch ls {
 	case StartLife:
 		return "START_LIFE"
+	case OneYearOlder:
+		return "ONE_YEAR_OLDER"
+	case MaxAgeReached:
+		return "MAX_AGE_REACHED"
 	}
 	return "unknown signal"
 }
