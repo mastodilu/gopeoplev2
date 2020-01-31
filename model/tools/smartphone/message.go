@@ -27,7 +27,7 @@ func (msg *Message) Created() time.Time {
 }
 
 // New creates a new Message object
-func New(from, content string) *Message {
+func NewMessage(from, content string) *Message {
 	return &Message{
 		from:    from,
 		content: content,
