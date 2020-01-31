@@ -7,7 +7,7 @@ import (
 
 // Smartphone -
 type Smartphone struct {
-	ch   chan Message
+	ch   chan *Message
 	msgs []*Message
 	lock sync.Mutex
 }
@@ -15,7 +15,7 @@ type Smartphone struct {
 // New creates new smartphone
 func New() *Smartphone {
 	phone := Smartphone{
-		ch: make(chan Message),
+		ch: make(chan *Message),
 	}
 	phone.receiveMessages()
 	return &phone
@@ -31,12 +31,13 @@ func (s *Smartphone) GiveNumber() chan<- Message {
 			if !ok {
 				return // channel closed
 			}
-			s.ch <- msg // forward message to actual smartphone
+			s.ch <- &msg // forward message to actual smartphone
 		}
 	}()
 	return newch
 }
 
+// receiveMessages always listen for incoming messages to store
 func (s *Smartphone) receiveMessages() {
 	go func() {
 		for {
@@ -44,10 +45,12 @@ func (s *Smartphone) receiveMessages() {
 			if !ok {
 				return // main channel closed
 			}
+			// using a function to wrap its content only
+			// to defer sync.Mutex Unlock method
 			func() {
 				s.lock.Lock()
 				defer s.lock.Unlock()
-				s.msgs = append(s.msgs, &msg)
+				s.msgs = append(s.msgs, msg)
 			}()
 		}
 	}()
