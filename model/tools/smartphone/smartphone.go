@@ -23,15 +23,15 @@ func New() *Smartphone {
 
 // GiveNumber creates a middleware that forwards to the smartphone channel
 // messages received from different sources
-func (s *Smartphone) GiveNumber() chan<- Message {
-	newch := make(chan Message)
+func (s *Smartphone) GiveNumber() chan<- *Message {
+	newch := make(chan *Message)
 	go func() {
 		for {
 			msg, ok := <-newch
 			if !ok {
 				return // channel closed
 			}
-			s.ch <- &msg // forward message to actual smartphone
+			s.ch <- msg // forward message to actual smartphone
 		}
 	}()
 	return newch

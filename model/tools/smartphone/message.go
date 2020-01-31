@@ -1,6 +1,7 @@
 package smartphone
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -26,11 +27,19 @@ func (msg *Message) Created() time.Time {
 	return msg.created
 }
 
-// New creates a new Message object
+// NewMessage creates a new Message object
 func NewMessage(from, content string) *Message {
 	return &Message{
 		from:    from,
 		content: content,
 		created: time.Now(),
 	}
+}
+
+func (msg *Message) String() string {
+	return fmt.Sprintf(
+		"Message: [From:%s][Content:%s]",
+		msg.from,
+		msg.content,
+	)
 }
