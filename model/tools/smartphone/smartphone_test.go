@@ -37,18 +37,21 @@ func TestReadNextMessage(t *testing.T) {
 		for _, msg := range tosend1 {
 			phoneNumber <- msg
 		}
+		close(phoneNumber)
 	}()
 	go func() {
 		phoneNumber := phone.GiveNumber()
 		for _, msg := range tosend2 {
 			phoneNumber <- msg
 		}
+		close(phoneNumber)
 	}()
 	go func() {
 		phoneNumber := phone.GiveNumber()
 		for _, msg := range tosend3 {
 			phoneNumber <- msg
 		}
+		close(phoneNumber)
 	}()
 
 	time.Sleep(time.Second * 2)

@@ -70,6 +70,7 @@ func listenForNewCustomers() {
 				msg := smartphone.NewMessage("love-agency", "a partner was found")
 				customers[id].Chat() <- msg
 				delete(customers, id)
+				close(customers[id].Chat())
 			}
 
 		}
