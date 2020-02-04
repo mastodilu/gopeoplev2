@@ -24,7 +24,6 @@ func TestNew(t *testing.T) {
 		t.Errorf("got %d, expected 'M' or 'F'", newperson.Sex())
 	}
 
-	ch <- mysignals.Stop
 }
 
 func TestListenForSignals(t *testing.T) {
@@ -50,7 +49,4 @@ func TestListenForSignals(t *testing.T) {
 		t.Errorf("p3.Age() = %d, expected value in range (2, 4)", p1.Age())
 	}
 
-	ch <- mysignals.Stop
-	ch <- mysignals.Stop
-	ch <- mysignals.Stop
 }

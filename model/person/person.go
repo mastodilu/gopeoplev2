@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mastodilu/gopeoplev2/global"
+
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
@@ -56,54 +58,67 @@ func New(lms chan mysignals.LifeSignal) *Person {
 
 // ListenForSignals begin listening for signals (begin living and counting years)
 func (p *Person) listenForSignals() {
-	// handle signals:
-	// use a Closure to define the channel as read only
-	func(ch <-chan mysignals.LifeSignal) {
-		// stay in this loop until StartLife signal
-		stayInLoop := true
-		for stayInLoop {
-			msg := <-ch
-			switch msg {
-			case mysignals.Stop:
-				return // end person process
-			case mysignals.StartLife:
-				// start to count the years
-				go p.begingAging(p.lifemsgs)
-				stayInLoop = false
-			}
+
+	// stay in this loop until StartLife signal
+	stayInLoop := true
+	for stayInLoop {
+		msg := <-p.lifemsgs
+		if msg == mysignals.StartLife {
+			// overwrite this channel so that it becomes "private"
+			p.lifemsgs = make(chan mysignals.LifeSignal)
+			// start to count the years
+			go p.begingAging(p.lifemsgs)
+			stayInLoop = false
+		}
+	}
+
+	// read messages
+	go p.handleMessages()
+
+	// handle signals
+	stayInLoop = true
+	for stayInLoop {
+
+		msgin, ok := <-p.lifemsgs
+		if !ok {
+			fmt.Println("Life closed this channel!")
+			break
 		}
 
-		// handle signals
-		stayInLoop = true
-		for stayInLoop {
-
-			msgin, ok := <-ch
-			if !ok {
-				fmt.Println("Life closed this channel!")
-				break
-			}
-
-			switch msgin {
-			case mysignals.Stop:
-				return // end person process
-			case mysignals.OneYearOlder:
-				p.oneYearOlder()
-				fmt.Println("age is", p.Age())
-			case mysignals.MaxAgeReached:
-				stayInLoop = false
-			default:
-				// TODO p.readMessages()
-			}
+		switch msgin {
+		case mysignals.Stop:
+			return // end person process
+		case mysignals.OneYearOlder:
+			p.oneYearOlder()
+			fmt.Println("age is", p.Age())
+		case mysignals.MaxAgeReached:
+			stayInLoop = false
 		}
+	}
 
-		fmt.Println("Bye")
-	}(p.lifemsgs)
+	fmt.Println("Bye")
+
 }
 
-// ReadMessages reads and handles the next message received
-func (p *Person) ReadMessages() {
-	// read message
-	// handle message
+// handleMessages reads and handles the next message received
+func (p *Person) handleMessages() {
+	fmt.Println("A")
+	for {
+
+		msg, err := p.smartphone.ReadNextMessage()
+		if err != nil {
+			// if no messages then check every month
+			time.Sleep(lifetimings.Month)
+			// fmt.Println("B")
+		} else {
+			fmt.Println("C")
+			global.Quit <- msg.From()
+			// switch msg.From() {
+			// case "love-agency":
+			// 	global.Quit <- "Hurray!"
+			// }
+		}
+	}
 }
 
 // oneYearOlder adds one year to the person age
