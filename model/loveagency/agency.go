@@ -69,8 +69,8 @@ func listenForNewCustomers() {
 				// a compatible person was found
 				msg := smartphone.NewMessage("love-agency", "a partner was found")
 				customers[id].Chat() <- msg
-				delete(customers, id)
 				close(customers[id].Chat())
+				delete(customers, id)
 			}
 
 		}

@@ -11,34 +11,17 @@ import (
 )
 
 func main() {
+
+	nPpl := 10
 	ch := make(chan mysignals.LifeSignal)
-
-	p1 := person.New(ch)
-	p2 := person.New(ch)
-	p3 := person.New(ch)
-	p4 := person.New(ch)
-	p5 := person.New(ch)
-
-	fmt.Println(p1.String())
-	fmt.Println(p2.String())
-	fmt.Println(p3.String())
-	fmt.Println(p4.String())
-	fmt.Println(p5.String())
-
-	time.Sleep(time.Second)
-
-	ch <- mysignals.StartLife
-	ch <- mysignals.StartLife
-	ch <- mysignals.StartLife
-	ch <- mysignals.StartLife
-	ch <- mysignals.StartLife
-
 	loveAgency := loveagency.GetInstance()
-	loveAgency <- p1
-	loveAgency <- p2
-	loveAgency <- p3
-	loveAgency <- p4
-	loveAgency <- p5
+
+	for i := 0; i < nPpl; i++ {
+		p := person.New(ch)
+		fmt.Println(p.String())
+		ch <- mysignals.StartLife
+		loveAgency <- p
+	}
 
 	time.Sleep(lifetimings.Year * 4)
 }
