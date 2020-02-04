@@ -32,16 +32,9 @@ var (
 func GetInstance() chan<- *person.Person {
 	once.Do(func() {
 		receiveRequest = make(chan *person.Person)
-		// TODO call listenForNewCustomers()
+		listenForNewCustomers()
 	})
 	return receiveRequest
-}
-
-// CloseInstance closes the current instance and resets all the variables
-func CloseInstance() {
-	// end listen() process
-	close(receiveRequest)
-	once = sync.Once{}
 }
 
 // listenForNewCustomers listens for new customers on the channel
