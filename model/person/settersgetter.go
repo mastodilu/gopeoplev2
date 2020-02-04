@@ -38,7 +38,7 @@ func newPersonID() int {
 	return internalCounter
 }
 
-// GetTelephoneNumber returns a channel where to write directly to this person
-func (p *Person) GetTelephoneNumber() chan<- *smartphone.Message {
+// Chat returns a channel where to write directly to this person
+func (p *Person) Chat() chan<- *smartphone.Message {
 	return p.smartphone.GiveNumber()
 }
