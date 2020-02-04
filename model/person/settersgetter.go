@@ -1,6 +1,10 @@
 package person
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
+)
 
 var internalCounter int
 
@@ -32,4 +36,9 @@ func (p *Person) String() string {
 func newPersonID() int {
 	internalCounter++
 	return internalCounter
+}
+
+// Chat returns a channel where to write directly to this person
+func (p *Person) Chat() chan<- *smartphone.Message {
+	return p.smartphone.GiveNumber()
 }
