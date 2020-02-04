@@ -1,6 +1,7 @@
 package loveagency
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
@@ -68,6 +69,7 @@ func listenForNewCustomers() {
 				// a compatible person was found
 				msg := smartphone.NewMessage("love-agency", "a partner was found")
 				customers[id].Chat() <- msg
+				delete(customers, id)
 			}
 
 		}
@@ -77,5 +79,9 @@ func listenForNewCustomers() {
 // isCompatible returns true if the two curstomers are considered compatible,
 // false otherwise
 func isCompatible(newcustomer, customer *person.Person) bool {
+	if newcustomer.Sex() != customer.Sex() {
+		fmt.Printf("%s is compatible with %s\n", newcustomer, customer)
+		return true
+	}
 	return false
 }

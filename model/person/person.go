@@ -99,9 +99,8 @@ func (p *Person) listenForSignals() {
 
 // handleMessages reads and handles the next message received
 func (p *Person) handleMessages() {
-	fmt.Println("A")
+	fmt.Println(p.id, "is waiting for new messages")
 	for {
-
 		msg, err := p.smartphone.ReadNextMessage()
 		if err != nil {
 			// if no messages then check every 6 months
