@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mastodilu/gopeoplev2/global"
-
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
@@ -90,7 +88,6 @@ func (p *Person) listenForSignals() {
 			return // end person process
 		case mysignals.OneYearOlder:
 			p.oneYearOlder()
-			fmt.Println("age is", p.Age())
 		case mysignals.MaxAgeReached:
 			stayInLoop = false
 		}
@@ -107,16 +104,10 @@ func (p *Person) handleMessages() {
 
 		msg, err := p.smartphone.ReadNextMessage()
 		if err != nil {
-			// if no messages then check every month
-			time.Sleep(lifetimings.Month)
-			// fmt.Println("B")
+			// if no messages then check every 6 months
+			time.Sleep(lifetimings.Month * 6)
 		} else {
-			fmt.Println("C")
-			global.Quit <- msg.From()
-			// switch msg.From() {
-			// case "love-agency":
-			// 	global.Quit <- "Hurray!"
-			// }
+			fmt.Println(msg.From())
 		}
 	}
 }
