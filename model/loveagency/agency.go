@@ -3,6 +3,8 @@ package loveagency
 import (
 	"sync"
 
+	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
+
 	"github.com/mastodilu/gopeoplev2/model/person"
 )
 
@@ -19,8 +21,10 @@ hashmap {
 	- e uno per inviare i potenziali partner trovati
 */
 
-var once sync.Once                     // singleton
-var receiveRequest chan *person.Person // channel where people can send its data
+var (
+	once           sync.Once           // singleton
+	receiveRequest chan *person.Person // channel where people can send its data
+)
 
 // GetInstance returns two channels
 // The channel receiveRequest is for sending a registration request. The agency will store
@@ -44,45 +48,41 @@ func CloseInstance() {
 // and handles the customer list
 func listenForNewCustomers() {
 	go func() {
+
 		// hashmap of people that asked to be registered as potential partner
-		registeredClients := make(map[int]*person.Person)
-		hashmapLock := sync.Mutex{}
+		customers := make(map[int]*person.Person)
 
 		for {
-			customer, ok := <-receiveRequest
+			newcustomer, ok := <-receiveRequest
 			if !ok {
 				// channel closed, end this process
 				return
 			}
 
 			// find a partner for this new person.
-			// If a partner is found id will store its key in the hashmap
+			// If a partner is found it will store its key in the hashmap
 			id := -1
-			for key, person := range registeredClients {
-				if isCompatible(customer, person) {
+			for key, customer := range customers {
+				if isCompatible(newcustomer, customer) {
 					id = key
 					break
 				}
 			}
 			if id == -1 {
 				// no compatible person was found
-				hashmapLock.Lock()
-				registeredClients[customer.ID()] = customer // store this person
-				hashmapLock.Unlock()
+				customers[newcustomer.ID()] = newcustomer
 			} else {
-				hashmapLock.Lock()
-				matched := registeredClients[id]
-				delete(registeredClients, id)
-				hashmapLock.Unlock()
-				customer.Smartphone() <- matched
+				// a compatible person was found
+				msg := smartphone.NewMessage("love-agency", "a partner was found")
+				customers[id].Chat() <- msg
 			}
 
 		}
 	}()
 }
 
-// isCompatible returns true if the two person are compatible
-// returns false if they're not
-func isCompatible(customer, person *person.Person) bool {
+// isCompatible returns true if the two curstomers are considered compatible,
+// false otherwise
+func isCompatible(newcustomer, customer *person.Person) bool {
 	return false
 }
