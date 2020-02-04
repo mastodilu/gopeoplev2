@@ -30,13 +30,27 @@ func TestNew(t *testing.T) {
 func TestListenForSignals(t *testing.T) {
 	ch := make(chan mysignals.LifeSignal)
 	p1 := New(ch)
+	p2 := New(ch)
+	p3 := New(ch)
 
 	ch <- mysignals.StartLife
+	ch <- mysignals.StartLife
+	ch <- mysignals.StartLife
+
 	// wait about 3 years
 	time.Sleep(lifetimings.Year * 3)
+
 	if p1.Age() != 2 && p1.Age() != 3 && p1.Age() != 4 {
 		t.Errorf("p1.Age() = %d, expected value in range (2, 4)", p1.Age())
 	}
+	if p2.Age() != 2 && p2.Age() != 3 && p2.Age() != 4 {
+		t.Errorf("p2.Age() = %d, expected value in range (2, 4)", p1.Age())
+	}
+	if p3.Age() != 2 && p3.Age() != 3 && p3.Age() != 4 {
+		t.Errorf("p3.Age() = %d, expected value in range (2, 4)", p1.Age())
+	}
 
+	ch <- mysignals.Stop
+	ch <- mysignals.Stop
 	ch <- mysignals.Stop
 }
