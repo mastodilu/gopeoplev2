@@ -7,6 +7,7 @@ import (
 
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
+	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
 	"github.com/mastodilu/gopeoplev2/utils"
 )
 
@@ -24,7 +25,7 @@ type Person struct {
 	age        Age
 	sex        byte                      // 'M' or 'F'
 	lifemsgs   chan mysignals.LifeSignal // channel used to handle signals
-	smartphone chan *Person              // channel used to handle chats with potential partners and with the agency
+	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
 }
 
 // New creates and returs a new Person
@@ -37,7 +38,7 @@ func New(lms chan mysignals.LifeSignal) *Person {
 			lock:   sync.Mutex{},
 			maxage: 100,
 		},
-		smartphone: make(chan *Person),
+		smartphone: smartphone.New(),
 		// sex is M or F
 		sex: func() byte {
 			if utils.NewRandomIntInRange(0, 1) == 0 {
@@ -57,7 +58,7 @@ func New(lms chan mysignals.LifeSignal) *Person {
 func (p *Person) listenForSignals() {
 	// handle signals:
 	// use a Closure to define the channel as read only
-	func(ch <-chan mysignals.LifeSignal, smartphone <-chan *Person) {
+	func(ch <-chan mysignals.LifeSignal) {
 		// stay in this loop until StartLife signal
 		stayInLoop := true
 		for stayInLoop {
@@ -72,17 +73,10 @@ func (p *Person) listenForSignals() {
 			}
 		}
 
-		// receive messages forever
-		// "a real smartphone always works no matter what! ;)"
-		go func() {
-			for {
-				<-smartphone
-			}
-		}()
-
-		// handle signals from life
+		// handle signals
 		stayInLoop = true
 		for stayInLoop {
+
 			msgin, ok := <-ch
 			if !ok {
 				fmt.Println("Life closed this channel!")
@@ -97,11 +91,19 @@ func (p *Person) listenForSignals() {
 				fmt.Println("age is", p.Age())
 			case mysignals.MaxAgeReached:
 				stayInLoop = false
+			default:
+				// TODO p.readMessages()
 			}
 		}
 
 		fmt.Println("Bye")
-	}(p.lifemsgs, p.smartphone)
+	}(p.lifemsgs)
+}
+
+// ReadMessages reads and handles the next message received
+func (p *Person) ReadMessages() {
+	// read message
+	// handle message
 }
 
 // oneYearOlder adds one year to the person age
