@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
+	"github.com/mastodilu/gopeoplev2/model/loveagency"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
 	"github.com/mastodilu/gopeoplev2/model/person/decisionmaker/brain"
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
@@ -29,6 +30,10 @@ type Person struct {
 	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
 	brain      DecisionMaker
 }
+
+var (
+	loveAg = loveagency.GetInstance()
+)
 
 // New creates and returs a new Person
 func New(lms chan mysignals.LifeSignal) *Person {

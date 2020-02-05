@@ -20,7 +20,8 @@ func main() {
 		p := person.New(ch)
 		fmt.Println(p.String())
 		ch <- mysignals.StartLife
-		loveAgency <- p
+		loveAgency <- loveagency.NewPersonInfo(p.ID(), p.Sex(), p.Chat())
+
 	}
 
 	time.Sleep(lifetimings.Year * 4)

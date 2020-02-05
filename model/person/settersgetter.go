@@ -6,7 +6,14 @@ import (
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
 )
 
+// internalCounter keeps track of used IDs
 var internalCounter int
+
+// newPersonID returns the next valid ID
+func newPersonID() int {
+	internalCounter++
+	return internalCounter
+}
 
 // ID person's id getter
 func (p *Person) ID() int {
@@ -30,12 +37,6 @@ func (p *Person) Sex() byte {
 // String returns the Person as formatted string
 func (p *Person) String() string {
 	return fmt.Sprintf("id:%d age:%d sex:%c", p.ID(), p.Age(), p.Sex())
-}
-
-// newPersonID returns the next valid ID
-func newPersonID() int {
-	internalCounter++
-	return internalCounter
 }
 
 // Chat returns a channel where to write directly to this person

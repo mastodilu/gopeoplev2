@@ -5,8 +5,6 @@ import (
 	"sync"
 
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
-
-	"github.com/mastodilu/gopeoplev2/model/person"
 )
 
 /*
@@ -23,16 +21,16 @@ hashmap {
 */
 
 var (
-	once           sync.Once           // singleton
-	receiveRequest chan *person.Person // channel where people can send its data
+	once           sync.Once        // singleton
+	receiveRequest chan *PersonInfo // channel where people can send its data
 )
 
 // GetInstance returns two channels
 // The channel receiveRequest is for sending a registration request. The agency will store
 // The data received in this channel and use it to look for potential partner for other people.
-func GetInstance() chan<- *person.Person {
+func GetInstance() chan<- *PersonInfo {
 	once.Do(func() {
-		receiveRequest = make(chan *person.Person)
+		receiveRequest = make(chan *PersonInfo)
 		listenForNewCustomers()
 	})
 	return receiveRequest
@@ -44,7 +42,7 @@ func listenForNewCustomers() {
 	go func() {
 
 		// hashmap of people that asked to be registered as potential partner
-		customers := make(map[int]*person.Person)
+		customers := make(map[int]*PersonInfo)
 
 		for {
 			newcustomer, ok := <-receiveRequest
@@ -79,9 +77,9 @@ func listenForNewCustomers() {
 
 // isCompatible returns true if the two curstomers are considered compatible,
 // false otherwise
-func isCompatible(newcustomer, customer *person.Person) bool {
+func isCompatible(newcustomer, customer *PersonInfo) bool {
 	if newcustomer.Sex() != customer.Sex() {
-		fmt.Printf("%s is compatible with %s\n", newcustomer, customer)
+		fmt.Printf("id:%d is compatible with id:%d\n", newcustomer.ID(), customer.ID())
 		return true
 	}
 	return false
