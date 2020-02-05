@@ -7,6 +7,7 @@ import (
 
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
+	"github.com/mastodilu/gopeoplev2/model/person/decisionmaker/brain"
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
 	"github.com/mastodilu/gopeoplev2/utils"
 )
@@ -26,6 +27,7 @@ type Person struct {
 	sex        byte                      // 'M' or 'F'
 	lifemsgs   chan mysignals.LifeSignal // channel used to handle signals
 	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
+	brain      DecisionMaker
 }
 
 // New creates and returs a new Person
@@ -39,6 +41,14 @@ func New(lms chan mysignals.LifeSignal) *Person {
 			maxage: 100,
 		},
 		smartphone: smartphone.New(),
+		lifemsgs:   lms,
+		// use &brain.Brain{}
+		// instead of brain.Brain{}
+		// because Brain implements the interface DecisionMaker{} using a pointer receiver
+		// 			(b* Brain)Method(...)
+		// instead of a value receiver
+		// 			(b Brain)Method(...)
+		brain: &brain.Brain{},
 		// sex is M or F
 		sex: func() byte {
 			if utils.NewRandomIntInRange(0, 1) == 0 {
@@ -46,7 +56,6 @@ func New(lms chan mysignals.LifeSignal) *Person {
 			}
 			return 'F'
 		}(),
-		lifemsgs: lms,
 	}
 	// start listening for signals
 	go (&p).listenForSignals()
@@ -130,4 +139,10 @@ func (p *Person) begingAging(ch chan<- mysignals.LifeSignal) {
 		time.Sleep(lifetimings.Year) // wait one year
 		ch <- mysignals.OneYearOlder // signal that one year is passed
 	}
+}
+
+// isRightPartner calls IsRightPartner on the interface DecisionMaker
+func (p *Person) isRightPartner(p2 *Person) bool {
+	// TODO return p.brain.IsRightPartner(intelligent1, intelligent2, pretty1, pretty2 int, sex1, sex2 byte)
+	return p.Sex() != p2.Sex()
 }
