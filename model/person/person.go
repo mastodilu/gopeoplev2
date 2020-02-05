@@ -42,13 +42,12 @@ func New(lms chan mysignals.LifeSignal) *Person {
 		},
 		smartphone: smartphone.New(),
 		lifemsgs:   lms,
-		// use address of type Brain{}
-		// 			&brain.Brain{}
+		// use &brain.Brain{}
 		// instead of brain.Brain{}
 		// because Brain implements the interface DecisionMaker{} using a pointer receiver
 		// 			(b* Brain)Method(...)
 		// instead of a value receiver
-		// 			(b Brain)Method(...) -
+		// 			(b Brain)Method(...)
 		brain: &brain.Brain{},
 		// sex is M or F
 		sex: func() byte {
