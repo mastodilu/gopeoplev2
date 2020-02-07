@@ -51,6 +51,8 @@ func listenForNewCustomers() {
 				return
 			}
 
+			log.Printf("new customer: %d\n", newcustomer.ID())
+
 			// find a partner for this new person.
 			// If a partner is found it will store its key in the hashmap
 			id := -1
@@ -70,9 +72,9 @@ func listenForNewCustomers() {
 					"a partner was found",
 					customers[id].Chat(), // gives the newcustomer the contact of the compatible customer
 				)
-				customers[id].Chat() <- msg
-				// close(customers[id].Chat())
+				newcustomer.Chat() <- msg
 				delete(customers, id)
+				close(newcustomer.Chat())
 			}
 
 		}

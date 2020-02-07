@@ -37,6 +37,7 @@ func TestListenForSignals(t *testing.T) {
 	ch <- mysignals.StartLife
 	ch <- mysignals.StartLife
 	ch <- mysignals.StartLife
+	close(ch)
 
 	// wait about 3 years
 	time.Sleep(lifetimings.Year * 3)

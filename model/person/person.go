@@ -37,7 +37,7 @@ type Person struct {
 	lifemsgs   chan mysignals.LifeSignal // channel used to handle signals
 	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
 	brain      DecisionMaker
-	isEngaged  engaged // evaluated when a partner is found
+	engaged    engaged // evaluated when a partner is found
 }
 
 var (
@@ -56,7 +56,7 @@ func New(lms chan mysignals.LifeSignal) *Person {
 		},
 		smartphone: smartphone.New(),
 		lifemsgs:   lms,
-		isEngaged: engaged{
+		engaged: engaged{
 			value: false,
 			lock:  sync.Mutex{},
 		},
@@ -107,6 +107,7 @@ func (p *Person) listenForSignals() {
 		msgin, ok := <-p.lifemsgs
 		if !ok {
 			fmt.Println("Life closed this channel!")
+			stayInLoop = false
 			break
 		}
 
@@ -116,7 +117,7 @@ func (p *Person) listenForSignals() {
 		case mysignals.OneYearOlder:
 			p.oneYearOlder()
 			// if single, every 2 years, contact the love agency
-			if p.isSingle() && p.Age()%2 == 0 {
+			if !p.isEngaged() && p.Age()%2 == 0 {
 				loveagency.GetInstance() <- loveagency.NewPersonInfo(
 					p.ID(),
 					p.Sex(),
@@ -134,7 +135,6 @@ func (p *Person) listenForSignals() {
 
 // handleMessages reads and handles the next message received
 func (p *Person) handleMessages() {
-	fmt.Println(p.id, "is waiting for new messages")
 	for {
 		msg, err := p.smartphone.ReadNextMessage()
 		if err != nil {
@@ -142,42 +142,48 @@ func (p *Person) handleMessages() {
 			time.Sleep(lifetimings.Month * 6)
 		} else {
 			switch msg.From() {
-			case "love-agency":
-				if p.isSingle() {
+			case "love-agency": // receive a message from love agency because a potential partner was found
+				fmt.Printf("%d msg in from love-agency\n", p.ID())
+				if p.isEngaged() {
+					// do nothing because p has a partner
+					// just ignore this message from the love agency
+				} else {
 					// prevent this Person from contacting the love-agency again
 					// during this conversation with a potential partner
-					p.engaged()
+					p.setEngaged(true)
 					creepymsg := smartphone.NewMessage(
 						"stranger",
 						"hey, are you single?",
 						p.Chat(),
 					)
 					msg.Contact() <- creepymsg
-				} else {
-					// do nothing because p has a partner
-					// just ignore the message from the love agency
+					log.Printf("stranger %2d: hey %p are you single?\n", p.ID(), msg.Contact())
 				}
 			case "stranger":
-				if p.isSingle() {
-					p.engaged() // set this Person to engaged = true
-
-					msg.Contact() <- smartphone.NewMessage(
-						"partner",
-						"yes", // send "yes, I'm single"
-						nil,   // nil because there won't be any further communication
-					)
-				} else {
+				fmt.Printf("%d msg in from stranger\n", p.ID())
+				if p.isEngaged() {
 					msg.Contact() <- smartphone.NewMessage(
 						"partner",
 						"no", // send "no, I'm engaged"
 						nil,  // nil because there won't be any further communication
 					)
-				}
-			case "partner":
-				if msg.Content() == "yes" {
-					log.Println("Hurray, we're engaged")
 				} else {
-					p.notEngaged()
+
+					p.setEngaged(true)
+					msg.Contact() <- smartphone.NewMessage(
+						"partner",
+						"yes", // send "yes, I'm single"
+						nil,   // nil because there won't be any further communication
+					)
+					log.Printf("partner %d - %p, yes\n", p.ID(), p.Chat())
+				}
+
+			case "partner":
+				fmt.Printf("%d msg in from partner\n", p.ID())
+				if msg.Content() == "yes" {
+					log.Printf("Hurray, id %d is engaged\n", p.ID())
+				} else {
+					p.setEngaged(false)
 					log.Println("Damn, we're not engaged")
 				}
 

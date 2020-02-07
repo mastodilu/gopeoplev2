@@ -21,9 +21,9 @@ func main() {
 	defer logfile.Close()
 	log.SetOutput(logfile)
 
-	nPpl := 50
+	nPpl := 5
 	ch := make(chan mysignals.LifeSignal)
-	// loveAgency := loveagency.GetInstance()
+	defer close(ch)
 
 	for i := 0; i < nPpl; i++ {
 		p := person.New(ch)

@@ -44,23 +44,16 @@ func (p *Person) Chat() chan<- *smartphone.Message {
 	return p.smartphone.GiveNumber()
 }
 
-// isSingle returns true if this Person doesn't have a partner
-func (p *Person) isSingle() bool {
-	p.isEngaged.lock.Lock()
-	defer p.isEngaged.lock.Unlock()
-	return p.isEngaged.value == false
+// isEngaged returns true if this Person doesn't have a partner
+func (p *Person) isEngaged() bool {
+	p.engaged.lock.Lock()
+	defer p.engaged.lock.Unlock()
+	return p.engaged.value
 }
 
-// engaged setter
-func (p *Person) engaged() {
-	p.isEngaged.lock.Lock()
-	defer p.isEngaged.lock.Unlock()
-	p.isEngaged.value = true
-}
-
-// notEngaged setter
-func (p *Person) notEngaged() {
-	p.isEngaged.lock.Lock()
-	defer p.isEngaged.lock.Unlock()
-	p.isEngaged.value = false
+// setEngaged setter
+func (p *Person) setEngaged(value bool) {
+	p.engaged.lock.Lock()
+	defer p.engaged.lock.Unlock()
+	p.engaged.value = value
 }
