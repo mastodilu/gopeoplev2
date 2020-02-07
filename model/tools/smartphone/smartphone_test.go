@@ -10,23 +10,23 @@ func TestReadNextMessage(t *testing.T) {
 
 	// chat n 1
 	tosend1 := []*Message{
-		NewMessage("matteo", "one"),
-		NewMessage("matteo", "two"),
-		NewMessage("matteo", "three"),
+		NewMessage("matteo", "one", nil),
+		NewMessage("matteo", "two", nil),
+		NewMessage("matteo", "three", nil),
 	}
 
 	// chat n 2
 	tosend2 := []*Message{
-		NewMessage("matteo", "AAA"),
-		NewMessage("matteo", "BBB"),
-		NewMessage("matteo", "CCC"),
+		NewMessage("matteo", "AAA", nil),
+		NewMessage("matteo", "BBB", nil),
+		NewMessage("matteo", "CCC", nil),
 	}
 
 	// chat n 3
 	tosend3 := []*Message{
-		NewMessage("matteo", "111"),
-		NewMessage("matteo", "222"),
-		NewMessage("matteo", "333"),
+		NewMessage("matteo", "111", nil),
+		NewMessage("matteo", "222", nil),
+		NewMessage("matteo", "333", nil),
 	}
 
 	// testing with 3 writers that all messages are received

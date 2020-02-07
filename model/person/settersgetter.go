@@ -43,3 +43,24 @@ func (p *Person) String() string {
 func (p *Person) Chat() chan<- *smartphone.Message {
 	return p.smartphone.GiveNumber()
 }
+
+// isSingle returns true if this Person doesn't have a partner
+func (p *Person) isSingle() bool {
+	p.isEngaged.lock.Lock()
+	defer p.isEngaged.lock.Unlock()
+	return p.isEngaged.value == false
+}
+
+// engaged setter
+func (p *Person) engaged() {
+	p.isEngaged.lock.Lock()
+	defer p.isEngaged.lock.Unlock()
+	p.isEngaged.value = true
+}
+
+// notEngaged setter
+func (p *Person) notEngaged() {
+	p.isEngaged.lock.Lock()
+	defer p.isEngaged.lock.Unlock()
+	p.isEngaged.value = false
+}

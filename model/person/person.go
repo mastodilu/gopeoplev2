@@ -2,6 +2,7 @@ package person
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -21,6 +22,13 @@ type Age struct {
 	maxage int
 }
 
+// engaged is a struct with value=true when Person is engaged, false otherwire
+// It contains a boolen value and its sempaphore to make it thread safe
+type engaged struct {
+	value bool
+	lock  sync.Mutex
+}
+
 // Person represents a person
 type Person struct {
 	id         int
@@ -29,6 +37,7 @@ type Person struct {
 	lifemsgs   chan mysignals.LifeSignal // channel used to handle signals
 	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
 	brain      DecisionMaker
+	isEngaged  engaged // evaluated when a partner is found
 }
 
 var (
@@ -41,12 +50,16 @@ func New(lms chan mysignals.LifeSignal) *Person {
 	p := Person{
 		id: newPersonID(),
 		age: Age{
-			value:  0,
+			value:  15,
 			lock:   sync.Mutex{},
 			maxage: 100,
 		},
 		smartphone: smartphone.New(),
 		lifemsgs:   lms,
+		isEngaged: engaged{
+			value: false,
+			lock:  sync.Mutex{},
+		},
 		// use &brain.Brain{}
 		// instead of brain.Brain{}
 		// because Brain implements the interface DecisionMaker{} using a pointer receiver
@@ -102,6 +115,14 @@ func (p *Person) listenForSignals() {
 			return // end person process
 		case mysignals.OneYearOlder:
 			p.oneYearOlder()
+			// if single, every 2 years, contact the love agency
+			if p.isSingle() && p.Age()%2 == 0 {
+				loveagency.GetInstance() <- loveagency.NewPersonInfo(
+					p.ID(),
+					p.Sex(),
+					p.Chat(),
+				)
+			}
 		case mysignals.MaxAgeReached:
 			stayInLoop = false
 		}
@@ -120,7 +141,50 @@ func (p *Person) handleMessages() {
 			// if no messages then check every 6 months
 			time.Sleep(lifetimings.Month * 6)
 		} else {
-			fmt.Println(msg.From())
+			switch msg.From() {
+			case "love-agency":
+				if p.isSingle() {
+					// prevent this Person from contacting the love-agency again
+					// during this conversation with a potential partner
+					p.engaged()
+					creepymsg := smartphone.NewMessage(
+						"stranger",
+						"hey, are you single?",
+						p.Chat(),
+					)
+					msg.Contact() <- creepymsg
+				} else {
+					// do nothing because p has a partner
+					// just ignore the message from the love agency
+				}
+			case "stranger":
+				if p.isSingle() {
+					p.engaged() // set this Person to engaged = true
+
+					msg.Contact() <- smartphone.NewMessage(
+						"partner",
+						"yes", // send "yes, I'm single"
+						nil,   // nil because there won't be any further communication
+					)
+				} else {
+					msg.Contact() <- smartphone.NewMessage(
+						"partner",
+						"no", // send "no, I'm engaged"
+						nil,  // nil because there won't be any further communication
+					)
+				}
+			case "partner":
+				if msg.Content() == "yes" {
+					log.Println("Hurray, we're engaged")
+				} else {
+					p.notEngaged()
+					log.Println("Damn, we're not engaged")
+				}
+
+			default:
+				// ignore for now
+				// this message is from an unknown sender
+			}
 		}
 	}
 }
