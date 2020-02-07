@@ -2,10 +2,12 @@ package person
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/mastodilu/gopeoplev2/model/lifetimings"
+	"github.com/mastodilu/gopeoplev2/model/loveagency"
 	"github.com/mastodilu/gopeoplev2/model/mysignals"
 	"github.com/mastodilu/gopeoplev2/model/person/decisionmaker/brain"
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
@@ -20,6 +22,13 @@ type Age struct {
 	maxage int
 }
 
+// engaged is a struct with value=true when Person is engaged, false otherwire
+// It contains a boolen value and its sempaphore to make it thread safe
+type engaged struct {
+	value bool
+	lock  sync.Mutex
+}
+
 // Person represents a person
 type Person struct {
 	id         int
@@ -28,7 +37,12 @@ type Person struct {
 	lifemsgs   chan mysignals.LifeSignal // channel used to handle signals
 	smartphone *smartphone.Smartphone    // channel used to handle chats with potential partners and with the agency
 	brain      DecisionMaker
+	engaged    engaged // evaluated when a partner is found
 }
+
+var (
+	loveAg = loveagency.GetInstance()
+)
 
 // New creates and returs a new Person
 func New(lms chan mysignals.LifeSignal) *Person {
@@ -36,12 +50,16 @@ func New(lms chan mysignals.LifeSignal) *Person {
 	p := Person{
 		id: newPersonID(),
 		age: Age{
-			value:  0,
+			value:  15,
 			lock:   sync.Mutex{},
 			maxage: 100,
 		},
 		smartphone: smartphone.New(),
 		lifemsgs:   lms,
+		engaged: engaged{
+			value: false,
+			lock:  sync.Mutex{},
+		},
 		// use &brain.Brain{}
 		// instead of brain.Brain{}
 		// because Brain implements the interface DecisionMaker{} using a pointer receiver
@@ -89,6 +107,7 @@ func (p *Person) listenForSignals() {
 		msgin, ok := <-p.lifemsgs
 		if !ok {
 			fmt.Println("Life closed this channel!")
+			stayInLoop = false
 			break
 		}
 
@@ -97,6 +116,14 @@ func (p *Person) listenForSignals() {
 			return // end person process
 		case mysignals.OneYearOlder:
 			p.oneYearOlder()
+			// if single, every 2 years, contact the love agency
+			if !p.isEngaged() && p.Age()%2 == 0 {
+				loveagency.GetInstance() <- loveagency.NewPersonInfo(
+					p.ID(),
+					p.Sex(),
+					p.Chat(),
+				)
+			}
 		case mysignals.MaxAgeReached:
 			stayInLoop = false
 		}
@@ -108,14 +135,62 @@ func (p *Person) listenForSignals() {
 
 // handleMessages reads and handles the next message received
 func (p *Person) handleMessages() {
-	fmt.Println(p.id, "is waiting for new messages")
 	for {
 		msg, err := p.smartphone.ReadNextMessage()
 		if err != nil {
 			// if no messages then check every 6 months
 			time.Sleep(lifetimings.Month * 6)
 		} else {
-			fmt.Println(msg.From())
+			switch msg.From() {
+			case "love-agency": // receive a message from love agency because a potential partner was found
+				fmt.Printf("%d msg in from love-agency\n", p.ID())
+				if p.isEngaged() {
+					// do nothing because p has a partner
+					// just ignore this message from the love agency
+				} else {
+					// prevent this Person from contacting the love-agency again
+					// during this conversation with a potential partner
+					p.setEngaged(true)
+					creepymsg := smartphone.NewMessage(
+						"stranger",
+						"hey, are you single?",
+						p.Chat(),
+					)
+					msg.Contact() <- creepymsg
+					log.Printf("stranger %2d: hey %p are you single?\n", p.ID(), msg.Contact())
+				}
+			case "stranger":
+				fmt.Printf("%d msg in from stranger\n", p.ID())
+				if p.isEngaged() {
+					msg.Contact() <- smartphone.NewMessage(
+						"partner",
+						"no", // send "no, I'm engaged"
+						nil,  // nil because there won't be any further communication
+					)
+				} else {
+
+					p.setEngaged(true)
+					msg.Contact() <- smartphone.NewMessage(
+						"partner",
+						"yes", // send "yes, I'm single"
+						nil,   // nil because there won't be any further communication
+					)
+					log.Printf("partner %d - %p, yes\n", p.ID(), p.Chat())
+				}
+
+			case "partner":
+				fmt.Printf("%d msg in from partner\n", p.ID())
+				if msg.Content() == "yes" {
+					log.Printf("Hurray, id %d is engaged\n", p.ID())
+				} else {
+					p.setEngaged(false)
+					log.Println("Damn, we're not engaged")
+				}
+
+			default:
+				// ignore for now
+				// this message is from an unknown sender
+			}
 		}
 	}
 }

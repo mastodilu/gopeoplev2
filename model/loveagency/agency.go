@@ -1,12 +1,10 @@
 package loveagency
 
 import (
-	"fmt"
+	"log"
 	"sync"
 
 	"github.com/mastodilu/gopeoplev2/model/tools/smartphone"
-
-	"github.com/mastodilu/gopeoplev2/model/person"
 )
 
 /*
@@ -23,16 +21,16 @@ hashmap {
 */
 
 var (
-	once           sync.Once           // singleton
-	receiveRequest chan *person.Person // channel where people can send its data
+	once           sync.Once        // singleton
+	receiveRequest chan *PersonInfo // channel where people can send its data
 )
 
 // GetInstance returns two channels
 // The channel receiveRequest is for sending a registration request. The agency will store
 // The data received in this channel and use it to look for potential partner for other people.
-func GetInstance() chan<- *person.Person {
+func GetInstance() chan<- *PersonInfo {
 	once.Do(func() {
-		receiveRequest = make(chan *person.Person)
+		receiveRequest = make(chan *PersonInfo)
 		listenForNewCustomers()
 	})
 	return receiveRequest
@@ -44,7 +42,7 @@ func listenForNewCustomers() {
 	go func() {
 
 		// hashmap of people that asked to be registered as potential partner
-		customers := make(map[int]*person.Person)
+		customers := make(map[int]*PersonInfo)
 
 		for {
 			newcustomer, ok := <-receiveRequest
@@ -52,6 +50,8 @@ func listenForNewCustomers() {
 				// channel closed, end this process
 				return
 			}
+
+			log.Printf("new customer: %d\n", newcustomer.ID())
 
 			// find a partner for this new person.
 			// If a partner is found it will store its key in the hashmap
@@ -67,10 +67,14 @@ func listenForNewCustomers() {
 				customers[newcustomer.ID()] = newcustomer
 			} else {
 				// a compatible person was found
-				msg := smartphone.NewMessage("love-agency", "a partner was found")
-				customers[id].Chat() <- msg
-				close(customers[id].Chat())
+				msg := smartphone.NewMessage(
+					"love-agency",
+					"a partner was found",
+					customers[id].Chat(), // gives the newcustomer the contact of the compatible customer
+				)
+				newcustomer.Chat() <- msg
 				delete(customers, id)
+				close(newcustomer.Chat())
 			}
 
 		}
@@ -79,9 +83,10 @@ func listenForNewCustomers() {
 
 // isCompatible returns true if the two curstomers are considered compatible,
 // false otherwise
-func isCompatible(newcustomer, customer *person.Person) bool {
+func isCompatible(newcustomer, customer *PersonInfo) bool {
+	// TODO update this logic
 	if newcustomer.Sex() != customer.Sex() {
-		fmt.Printf("%s is compatible with %s\n", newcustomer, customer)
+		log.Printf("id:%d is compatible with id:%d\n", newcustomer.ID(), customer.ID())
 		return true
 	}
 	return false
