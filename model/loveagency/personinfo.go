@@ -6,6 +6,7 @@ import "github.com/mastodilu/gopeoplev2/model/tools/smartphone"
 type PersonInfo struct {
 	id   int
 	sex  byte
+	age  int
 	chat chan<- *smartphone.Message
 }
 
@@ -24,11 +25,17 @@ func (pi *PersonInfo) Chat() chan<- *smartphone.Message {
 	return pi.chat
 }
 
+// Age getter
+func (pi *PersonInfo) Age() int {
+	return pi.age
+}
+
 // NewPersonInfo creates a new PersonInfo type and returns its address
-func NewPersonInfo(id int, sex byte, chat chan<- *smartphone.Message) *PersonInfo {
+func NewPersonInfo(id int, sex byte, age int, chat chan<- *smartphone.Message) *PersonInfo {
 	return &PersonInfo{
 		id:   id,
 		sex:  sex,
+		age:  age,
 		chat: chat,
 	}
 }

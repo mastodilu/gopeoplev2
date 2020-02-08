@@ -51,5 +51,4 @@ func TestListenForSignals(t *testing.T) {
 	if p3.Age() != 17 && p3.Age() != 18 && p3.Age() != 19 {
 		t.Errorf("p3.Age() = %d, expected value in range (17, 19)", p1.Age())
 	}
-
 }

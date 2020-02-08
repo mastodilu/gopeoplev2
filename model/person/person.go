@@ -44,6 +44,11 @@ var (
 	loveAg = loveagency.GetInstance()
 )
 
+const (
+	// MaxNumOfChildren maximum number of children a couple of Person can have
+	MaxNumOfChildren int = 3
+)
+
 // New creates and returs a new Person
 func New(lms chan mysignals.LifeSignal) *Person {
 	// create new Person
@@ -52,7 +57,7 @@ func New(lms chan mysignals.LifeSignal) *Person {
 		age: Age{
 			value:  15,
 			lock:   sync.Mutex{},
-			maxage: 100,
+			maxage: 40,
 		},
 		smartphone: smartphone.New(),
 		lifemsgs:   lms,
@@ -121,11 +126,14 @@ func (p *Person) listenForSignals() {
 				loveagency.GetInstance() <- loveagency.NewPersonInfo(
 					p.ID(),
 					p.Sex(),
+					p.Age(),
 					p.Chat(),
 				)
 			}
 		case mysignals.MaxAgeReached:
 			stayInLoop = false
+		case mysignals.MakeChildren:
+			p.makeChildren()
 		}
 	}
 
@@ -176,12 +184,20 @@ func (p *Person) handleMessages() {
 						nil,   // nil because there won't be any further communication
 					)
 					log.Printf("partner %d - %p, yes\n", p.ID(), p.Chat())
+					// if F then signal to make children
+					if p.IsFemale() {
+						p.lifemsgs <- mysignals.MakeChildren
+					}
 				}
 
 			case "partner":
 				fmt.Printf("%d msg in from partner\n", p.ID())
 				if msg.Content() == "yes" {
 					log.Printf("Hurray, id %d is engaged\n", p.ID())
+					// if F then signal to make children
+					if p.IsFemale() {
+						p.lifemsgs <- mysignals.MakeChildren
+					}
 				} else {
 					p.setEngaged(false)
 					log.Println("Damn, we're not engaged")
@@ -220,4 +236,25 @@ func (p *Person) begingAging(ch chan<- mysignals.LifeSignal) {
 func (p *Person) isRightPartner(p2 *Person) bool {
 	// TODO return p.brain.IsRightPartner(intelligent1, intelligent2, pretty1, pretty2 int, sex1, sex2 byte)
 	return p.Sex() != p2.Sex()
+}
+
+// makeChildren creates zero or more children
+func (p *Person) makeChildren() []*Person {
+	if !p.IsFemale() {
+		return nil
+	}
+	children := utils.NewRandomIntInRange(0, MaxNumOfChildren)
+	ch := make(chan mysignals.LifeSignal)
+	defer close(ch)
+
+	var people []*Person
+
+	for i := 0; i < children; i++ {
+		newp := New(ch)
+		fmt.Printf("new child of %d: %s\n", p.ID(), newp.String())
+		ch <- mysignals.StartLife
+		people = append(people, newp)
+	}
+
+	return people
 }
