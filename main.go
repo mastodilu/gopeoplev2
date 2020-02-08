@@ -21,7 +21,7 @@ func main() {
 	defer logfile.Close()
 	log.SetOutput(logfile)
 
-	startingPeople := 100
+	startingPeople := 30
 	ch := make(chan mysignals.LifeSignal)
 	defer close(ch)
 

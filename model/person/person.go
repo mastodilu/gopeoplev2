@@ -46,7 +46,7 @@ var (
 
 const (
 	// MaxNumOfChildren maximum number of children a couple of Person can have
-	MaxNumOfChildren int = 3
+	MaxNumOfChildren int = 4
 )
 
 // New creates and returs a new Person
