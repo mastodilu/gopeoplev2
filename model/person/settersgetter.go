@@ -57,3 +57,8 @@ func (p *Person) setEngaged(value bool) {
 	defer p.engaged.lock.Unlock()
 	p.engaged.value = value
 }
+
+// IsFemale returns true if Person is female
+func (p *Person) IsFemale() bool {
+	return p.sex == 'F'
+}

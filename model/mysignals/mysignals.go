@@ -12,6 +12,8 @@ const (
 	MaxAgeReached LifeSignal = iota
 	// Stop sends a stop signal, for example to end a person process
 	Stop LifeSignal = iota
+	// MakeChildren indicates when to make a child (or children)
+	MakeChildren LifeSignal = iota
 )
 
 func (ls LifeSignal) String() string {
@@ -22,6 +24,8 @@ func (ls LifeSignal) String() string {
 		return "ONE_YEAR_OLDER"
 	case MaxAgeReached:
 		return "MAX_AGE_REACHED"
+	case MakeChildren:
+		return "MAKE_CHILDREN"
 	}
 	return "unknown signal"
 }

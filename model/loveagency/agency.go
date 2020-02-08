@@ -51,7 +51,7 @@ func listenForNewCustomers() {
 				return
 			}
 
-			log.Printf("new customer: %d\n", newcustomer.ID())
+			log.Printf("new customer: %d-%c-%d\n", newcustomer.ID(), newcustomer.Sex(), newcustomer.Age())
 
 			// find a partner for this new person.
 			// If a partner is found it will store its key in the hashmap
@@ -84,7 +84,7 @@ func listenForNewCustomers() {
 // isCompatible returns true if the two curstomers are considered compatible,
 // false otherwise
 func isCompatible(newcustomer, customer *PersonInfo) bool {
-	// TODO update this logic
+	// TODO update this logic, add age and interests in common
 	if newcustomer.Sex() != customer.Sex() {
 		log.Printf("id:%d is compatible with id:%d\n", newcustomer.ID(), customer.ID())
 		return true
