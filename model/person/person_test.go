@@ -52,3 +52,22 @@ func TestListenForSignals(t *testing.T) {
 		t.Errorf("p3.Age() = %d, expected value in range (17, 19)", p1.Age())
 	}
 }
+
+func TestMakeChildren(t *testing.T) {
+	male := Person{
+		sex: 'M',
+	}
+
+	got := male.makeChildren()
+	if got != nil {
+		t.Errorf("got %v, expected nil", got)
+	}
+
+	female := Person{
+		sex: 'F',
+	}
+	got = female.makeChildren()
+	if len(got) < 0 || len(got) > MaxNumOfChildren {
+		t.Errorf("got %v, expected [0,%d]", got, MaxNumOfChildren)
+	}
+}
